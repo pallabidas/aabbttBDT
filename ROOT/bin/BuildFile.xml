@@ -1,0 +1,7 @@
+<use   name="root"/>
+<use   name="rootcore"/>
+<use   name="PhysicsTools/FWLite"/>
+<use   name="PhysicsTools/Utilities"/>
+<use   name="PhysicsTools/XGBoost"/>
+<bin   name="bdteval" file="bdteval.cc">
+</bin>
