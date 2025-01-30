@@ -60,7 +60,7 @@ int main (int argc, char** argv) {
   booster.addFeature("mT_b1MET");
   booster.addFeature("d_zeta");
   booster.addFeature("mutau_pt");
-  booster.addFeature("bmt_dR");
+  booster.addFeature("m_b1mt");
 
   char TreeToUse[80]="first" ;
 
@@ -626,7 +626,7 @@ void readdir(TDirectory *dir, optutl::CommandLineParser parser, char TreeToUse[]
 }
 
 void runBDTeval(pat::XGBooster booster, float jet_pt, float jet_eta, float jet_phi, float jet_mass, float pt_1, float eta_1, float phi_1, float mass_1, float pt_2, float eta_2, float phi_2, float mass_2, float met, float met_phi, float d_zeta, float& BDTval) {
-  float in_Jet_pt, in_mT_b1MET, in_d_zeta, in_mutau_pt, in_bmt_dR;
+  float in_Jet_pt, in_mT_b1MET, in_d_zeta, in_mutau_pt, in_m_b1mt;
   in_Jet_pt = jet_pt;
   in_mT_b1MET = compute_mt(jet_pt, jet_phi, met, met_phi);
   in_d_zeta = d_zeta;
@@ -635,12 +635,12 @@ void runBDTeval(pat::XGBooster booster, float jet_pt, float jet_eta, float jet_p
   ROOT::Math::PtEtaPhiMVector tau2(pt_2, eta_2, phi_2, mass_2);
   ROOT::Math::PtEtaPhiMVector tau12 = tau1 + tau2;
   in_mutau_pt = tau12.Pt();
-  in_bmt_dR = compute_deltaR(jet_eta, tau12.Eta(), jet_phi, tau12.Phi());
+  in_m_b1mt = (bjet1 + tau12).M();
   booster.set("Jet_pt", in_Jet_pt);
   booster.set("mT_b1MET", in_mT_b1MET);
   booster.set("d_zeta", in_d_zeta);
   booster.set("mutau_pt", in_mutau_pt);
-  booster.set("bmt_dR", in_bmt_dR);
+  booster.set("m_b1mt", in_m_b1mt);
   BDTval = booster.predict();
 }
 
