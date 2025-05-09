@@ -19,7 +19,7 @@
 using namespace std;
 
 void readdir(TDirectory *dir, optutl::CommandLineParser parser, char TreeToUse[], pat::XGBooster boosters[], bool isMC, bool isEmbedded);
-void runBDTeval(float& BDTval, int booster_idx, pat::XGBooster booster, float jet_1_pt, float jet_1_eta, float jet_1_phi, float jet_1_mass, float jet_2_pt, float jet_2_eta, float jet_2_phi, float jet_2_mass, float pt_1, float eta_1, float phi_1, float mass_1, float pt_2, float eta_2, float phi_2, float mass_2, float met, float met_phi, float d_zeta, int njets, float m_btautau_vis, float mtMET_1, float mtMET_2, float pt_vis);
+void runBDTeval(float& BDTval, std::vector<float>* featureValues, int booster_idx, pat::XGBooster booster, float jet_1_pt, float jet_1_eta, float jet_1_phi, float jet_1_mass, float jet_2_pt, float jet_2_eta, float jet_2_phi, float jet_2_mass, float pt_1, float eta_1, float phi_1, float mass_1, float pt_2, float eta_2, float phi_2, float mass_2, float met, float met_phi, float d_zeta, int njets, float m_btautau_vis, float mtMET_1, float mtMET_2, float pt_vis);
 void CopyDir(TDirectory *source, optutl::CommandLineParser parser);
 void CopyFile(const char *fname, optutl::CommandLineParser parser);
 void copyFiles(optutl::CommandLineParser parser, TFile* fOld, TFile* fNew);
@@ -126,6 +126,7 @@ int main (int argc, char** argv) {
   std::string newFileName = parser.stringValue("newFile");
   bool isMC = parser.boolValue("isMC");
   bool isEmbedded = parser.boolValue("isEmbedded");
+  std::cout << "isMC : " << isMC << std::endl;
 
   fProduce = new TFile(newFileName.c_str(),"RECREATE");
   copyFiles(parser, f, fProduce);
@@ -207,6 +208,43 @@ void readdir(TDirectory *dir, optutl::CommandLineParser parser, char TreeToUse[]
       float BDTval_JERUp = -10;
       float BDTval_JERDown = -10;
 
+      std::vector<std::string>* featureNames = new std::vector<std::string>;
+      std::vector<float>* featureValues_nominal = new std::vector<float>;
+      std::vector<float>* featureValues_es1Up = new std::vector<float>;
+      std::vector<float>* featureValues_es1Down = new std::vector<float>;
+      std::vector<float>* featureValues_es2Up = new std::vector<float>;
+      std::vector<float>* featureValues_es2Down = new std::vector<float>;
+      std::vector<float>* featureValues_UESUp = new std::vector<float>;
+      std::vector<float>* featureValues_UESDown = new std::vector<float>;
+      std::vector<float>* featureValues_ResponseUp = new std::vector<float>;
+      std::vector<float>* featureValues_ResponseDown = new std::vector<float>;
+      std::vector<float>* featureValues_ResolutionUp = new std::vector<float>;
+      std::vector<float>* featureValues_ResolutionDown = new std::vector<float>;
+      std::vector<float>* featureValues_JetAbsoluteUp = new std::vector<float>;
+      std::vector<float>* featureValues_JetAbsoluteDown = new std::vector<float>;
+      std::vector<float>* featureValues_JetAbsoluteyearUp = new std::vector<float>;
+      std::vector<float>* featureValues_JetAbsoluteyearDown = new std::vector<float>;
+      std::vector<float>* featureValues_JetBBEC1Up = new std::vector<float>;
+      std::vector<float>* featureValues_JetBBEC1Down = new std::vector<float>;
+      std::vector<float>* featureValues_JetBBEC1yearUp = new std::vector<float>;
+      std::vector<float>* featureValues_JetBBEC1yearDown = new std::vector<float>;
+      std::vector<float>* featureValues_JetEC2Up = new std::vector<float>;
+      std::vector<float>* featureValues_JetEC2Down = new std::vector<float>;
+      std::vector<float>* featureValues_JetEC2yearUp = new std::vector<float>;
+      std::vector<float>* featureValues_JetEC2yearDown = new std::vector<float>;
+      std::vector<float>* featureValues_JetFlavorQCDUp = new std::vector<float>;
+      std::vector<float>* featureValues_JetFlavorQCDDown = new std::vector<float>;
+      std::vector<float>* featureValues_JetHFUp = new std::vector<float>;
+      std::vector<float>* featureValues_JetHFDown = new std::vector<float>;
+      std::vector<float>* featureValues_JetHFyearUp = new std::vector<float>;
+      std::vector<float>* featureValues_JetHFyearDown = new std::vector<float>;
+      std::vector<float>* featureValues_JetRelativeBalUp = new std::vector<float>;
+      std::vector<float>* featureValues_JetRelativeBalDown = new std::vector<float>;
+      std::vector<float>* featureValues_JetRelativeSampleUp = new std::vector<float>;
+      std::vector<float>* featureValues_JetRelativeSampleDown = new std::vector<float>;
+      std::vector<float>* featureValues_JERUp = new std::vector<float>;
+      std::vector<float>* featureValues_JERDown = new std::vector<float>;
+
       TBranch *newBranch1 = t->Branch("bdtscore", &BDTval_nominal, "bdtscore/F");
       TBranch *newBranch1_es1U = t->Branch("bdtscore_es1Up",   &BDTval_es1Up,   "bdtscore_es1Up/F");
       TBranch *newBranch1_es1D = t->Branch("bdtscore_es1Down",   &BDTval_es1Down,   "bdtscore_es1Down/F");
@@ -242,6 +280,43 @@ void readdir(TDirectory *dir, optutl::CommandLineParser parser, char TreeToUse[]
       TBranch *newBranch1_JetRelativeSampleD = t->Branch("bdtscore_JetRelativeSampleDown", &BDTval_JetRelativeSampleDown, "bdtscore_JetRelativeSampleDown/F");
       TBranch *newBranch1_JERU = t->Branch("bdtscore_JERUp", &BDTval_JERUp, "bdtscore_JERUp/F");
       TBranch *newBranch1_JERD = t->Branch("bdtscore_JERDown", &BDTval_JERDown, "bdtscore_JERDown/F");
+
+      TBranch *newBranch1_featureNames = t->Branch("featureNames", &featureNames);
+      TBranch *newBranch1_featureValues = t->Branch("featureValues", &featureValues_nominal );
+      TBranch *newBranch1_featureValues_es1U = t->Branch("featureValues_es1Up", &featureValues_es1Up );
+      TBranch *newBranch1_featureValues_es1D = t->Branch("featureValues_es1Down", &featureValues_es1Down );
+      TBranch *newBranch1_featureValues_es2U = t->Branch("featureValues_es2Up", &featureValues_es2Up );
+      TBranch *newBranch1_featureValues_es2D = t->Branch("featureValues_es2Down", &featureValues_es2Down );
+      TBranch *newBranch1_featureValues_UESU = t->Branch("featureValues_UESUp", &featureValues_UESUp );
+      TBranch *newBranch1_featureValues_UESD = t->Branch("featureValues_UESDown", &featureValues_UESDown );
+      TBranch *newBranch1_featureValues_ResponseU = t->Branch("featureValues_responseUp", &featureValues_ResponseUp );
+      TBranch *newBranch1_featureValues_ResponseD = t->Branch("featureValues_responseDown", &featureValues_ResponseDown );
+      TBranch *newBranch1_featureValues_ResolutionU = t->Branch("featureValues_resolutionUp", &featureValues_ResolutionUp );
+      TBranch *newBranch1_featureValues_ResolutionD = t->Branch("featureValues_resolutionDown", &featureValues_ResolutionDown );
+      TBranch *newBranch1_featureValues_JetAbsoluteU = t->Branch("featureValues_JetAbsoluteUp", &featureValues_JetAbsoluteUp );
+      TBranch *newBranch1_featureValues_JetAbsoluteD = t->Branch("featureValues_JetAbsoluteDown", &featureValues_JetAbsoluteDown );
+      TBranch *newBranch1_featureValues_JetAbsoluteyearU = t->Branch("featureValues_JetAbsoluteyearUp", &featureValues_JetAbsoluteyearUp );
+      TBranch *newBranch1_featureValues_JetAbsoluteyearD = t->Branch("featureValues_JetAbsoluteyearDown", &featureValues_JetAbsoluteyearDown );
+      TBranch *newBranch1_featureValues_JetBBEC1U = t->Branch("featureValues_JetBBEC1Up", &featureValues_JetBBEC1Up );
+      TBranch *newBranch1_featureValues_JetBBEC1D = t->Branch("featureValues_JetBBEC1Down", &featureValues_JetBBEC1Down );
+      TBranch *newBranch1_featureValues_JetBBEC1yearU = t->Branch("featureValues_JetBBEC1yearUp", &featureValues_JetBBEC1yearUp );
+      TBranch *newBranch1_featureValues_JetBBEC1yearD = t->Branch("featureValues_JetBBEC1yearDown", &featureValues_JetBBEC1yearDown );
+      TBranch *newBranch1_featureValues_JetEC2U = t->Branch("featureValues_JetEC2Up", &featureValues_JetEC2Up );
+      TBranch *newBranch1_featureValues_JetEC2D = t->Branch("featureValues_JetEC2Down", &featureValues_JetEC2Down );
+      TBranch *newBranch1_featureValues_JetEC2yearU = t->Branch("featureValues_JetEC2yearUp", &featureValues_JetEC2yearUp );
+      TBranch *newBranch1_featureValues_JetEC2yearD = t->Branch("featureValues_JetEC2yearDown", &featureValues_JetEC2yearDown );
+      TBranch *newBranch1_featureValues_JetFlavorQCDU = t->Branch("featureValues_JetFlavorQCDUp", &featureValues_JetFlavorQCDUp );
+      TBranch *newBranch1_featureValues_JetFlavorQCDD = t->Branch("featureValues_JetFlavorQCDDown", &featureValues_JetFlavorQCDDown );
+      TBranch *newBranch1_featureValues_JetHFU = t->Branch("featureValues_JetHFUp", &featureValues_JetHFUp );
+      TBranch *newBranch1_featureValues_JetHFD = t->Branch("featureValues_JetHFDown", &featureValues_JetHFDown );
+      TBranch *newBranch1_featureValues_JetHFyearU = t->Branch("featureValues_JetHFyearUp", &featureValues_JetHFyearUp );
+      TBranch *newBranch1_featureValues_JetHFyearD = t->Branch("featureValues_JetHFyearDown", &featureValues_JetHFyearDown );
+      TBranch *newBranch1_featureValues_JetRelativeBalU = t->Branch("featureValues_JetRelativeBalUp", &featureValues_JetRelativeBalUp );
+      TBranch *newBranch1_featureValues_JetRelativeBalD = t->Branch("featureValues_JetRelativeBalDown", &featureValues_JetRelativeBalDown );
+      TBranch *newBranch1_featureValues_JetRelativeSampleU = t->Branch("featureValues_JetRelativeSampleUp", &featureValues_JetRelativeSampleUp );
+      TBranch *newBranch1_featureValues_JetRelativeSampleD = t->Branch("featureValues_JetRelativeSampleDown", &featureValues_JetRelativeSampleDown );
+      TBranch *newBranch1_featureValues_JERU = t->Branch("featureValues_JERUp", &featureValues_JERUp );
+      TBranch *newBranch1_featureValues_JERD = t->Branch("featureValues_JERDown", &featureValues_JERDown );
 
       // read the branches needed for input to BDT
       Int_t channel;
@@ -419,7 +494,6 @@ void readdir(TDirectory *dir, optutl::CommandLineParser parser, char TreeToUse[]
       Float_t D_zeta_JetRelativeSampleUp;
       Float_t D_zeta_JetRelativeSampleDown;
 
-      // New Change
       Float_t bpt_deepflavour_2;
       Float_t bpt_deepflavour_JERUp_2;
       Float_t bpt_deepflavour_JERDown_2;
@@ -937,288 +1011,379 @@ void readdir(TDirectory *dir, optutl::CommandLineParser parser, char TreeToUse[]
         BDTval_JERUp = -10;
         BDTval_JERDown = -10;
 
+        featureNames->clear(); 
+        featureValues_nominal->clear();
+        featureValues_es1Up->clear();
+        featureValues_es1Down->clear();
+        featureValues_es2Up->clear();
+        featureValues_es2Down->clear();
+        featureValues_UESUp->clear();
+        featureValues_UESDown->clear();
+        featureValues_ResponseUp->clear();
+        featureValues_ResponseDown->clear();
+        featureValues_ResolutionUp->clear();
+        featureValues_ResolutionDown->clear();
+        featureValues_JetAbsoluteUp->clear();
+        featureValues_JetAbsoluteDown->clear();
+        featureValues_JetAbsoluteyearUp->clear();
+        featureValues_JetAbsoluteyearDown->clear();
+        featureValues_JetBBEC1Up->clear();
+        featureValues_JetBBEC1Down->clear();
+        featureValues_JetBBEC1yearUp->clear();
+        featureValues_JetBBEC1yearDown->clear();
+        featureValues_JetEC2Up->clear();
+        featureValues_JetEC2Down->clear();
+        featureValues_JetEC2yearUp->clear();
+        featureValues_JetEC2yearDown->clear();
+        featureValues_JetFlavorQCDUp->clear();
+        featureValues_JetFlavorQCDDown->clear();
+        featureValues_JetHFUp->clear();
+        featureValues_JetHFDown->clear();
+        featureValues_JetHFyearUp->clear();
+        featureValues_JetHFyearDown->clear();
+        featureValues_JetRelativeBalUp->clear();
+        featureValues_JetRelativeBalDown->clear();
+        featureValues_JetRelativeSampleUp->clear();
+        featureValues_JetRelativeSampleDown->clear();
+        featureValues_JERUp->clear();
+        featureValues_JERDown->clear();
+
         int booster_idx = channel;
         if (bpt_deepflavour_1 > 0 && bpt_deepflavour_2 > 0) booster_idx += 3;
 
 	if (bpt_deepflavour_1 > 0) {
-	  runBDTeval(BDTval_nominal, booster_idx, boosters[booster_idx], bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1, bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2, pt_1_nominal, eta_1, phi_1, m_1_nominal, pt_2_nominal, eta_2, phi_2, m_2_nominal, met_nominal, metphi_nominal, D_zeta_nominal, njets, m_btautau_vis_nominal, mtMET_1_nominal, mtMET_2_nominal, pt_vis_nominal);
+    if (booster_idx == 0) {
+      featureNames->push_back("mT_thMET");
+      featureNames->push_back("mT_mMET");
+      featureNames->push_back("d_zeta");
+      featureNames->push_back("mutau_pt");
+      featureNames->push_back("m_b1mt");
+      featureNames->push_back("bmt_dR");
+      featureNames->push_back("b1th_dR");
+      featureNames->push_back("njets");
+    } 
+    else if (booster_idx == 1) {
+      featureNames->push_back("pt_vis_nominal");
+      featureNames->push_back("D_zeta_nominal");
+      featureNames->push_back("b1e_dR");
+      featureNames->push_back("m_btautau_vis_nominal");
+      featureNames->push_back("mtMET_1_nominal");
+      featureNames->push_back("b1th_dR");
+      featureNames->push_back("mtMET_2_nominal");
+      featureNames->push_back("njets");
+    } 
+    else if (booster_idx == 2) {
+      featureNames->push_back("pt_vis_nominal");
+      featureNames->push_back("D_zeta_nominal");
+      featureNames->push_back("mT_b1MET");
+      featureNames->push_back("pt_1_nominal");
+      featureNames->push_back("m_btautau_vis_nominal");
+      featureNames->push_back("mtMET_1_nominal");
+      featureNames->push_back("b1emu_dR");
+      featureNames->push_back("njets");
+    } 
+    else if (booster_idx == 3) {
+      featureNames->push_back("m_b2mt");
+      featureNames->push_back("bmt_dR");
+      featureNames->push_back("b2th_dR");
+      featureNames->push_back("mT_mMET");
+      featureNames->push_back("m_bbmt");
+      featureNames->push_back("d_ma");
+    } 
+    else if (booster_idx == 4) {
+      featureNames->push_back("mbb");
+      featureNames->push_back("m_btautau_vis_nominal");
+      featureNames->push_back("mtMET_1_nominal");
+      featureNames->push_back("b1th_dR");
+      featureNames->push_back("b1e_dR");
+      featureNames->push_back("b2th_dR");
+    }
+    else if (booster_idx == 5) {
+      featureNames->push_back("pt_vis_nominal");
+      featureNames->push_back("mT_b1MET");
+      featureNames->push_back("mtMET_1_nominal");
+      featureNames->push_back("b2emu_dR");
+      featureNames->push_back("d_ma");
+    }
+
+	  runBDTeval(BDTval_nominal, featureValues_nominal, booster_idx, boosters[booster_idx], bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1, bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2, pt_1_nominal, eta_1, phi_1, m_1_nominal, pt_2_nominal, eta_2, phi_2, m_2_nominal, met_nominal, metphi_nominal, D_zeta_nominal, njets, m_btautau_vis_nominal, mtMET_1_nominal, mtMET_2_nominal, pt_vis_nominal);
 	  if (isMC) {
-            runBDTeval(BDTval_es1Up, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-            		bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-            		pt_1_es1Up, eta_1, phi_1, m_1_es1Up,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_es1Up, metphi_es1Up, D_zeta_es1Up, njets,
-            		m_btautau_vis_es1Up, mtMET_1_es1Up, mtMET_2_nominal, pt_vis_es1Up);
-            runBDTeval(BDTval_es1Down, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-            		bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-            		pt_1_es1Down, eta_1, phi_1, m_1_es1Down,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_es1Down, metphi_es1Down, D_zeta_es1Down, njets,
-            		m_btautau_vis_es1Down, mtMET_1_es1Down, mtMET_2_nominal, pt_vis_es1Down);
-            runBDTeval(BDTval_es2Up, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-            		bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_es2Up, eta_2, phi_2, m_2_es2Up,
-            		met_es2Up, metphi_es2Up, D_zeta_es2Up, njets,
-            		m_btautau_vis_es2Up, mtMET_1_nominal, mtMET_2_es2Up, pt_vis_es2Up);
-            runBDTeval(BDTval_es2Down, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-            		bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_es2Down, eta_2, phi_2, m_2_es2Down,
-            		met_es2Down, metphi_es2Down, D_zeta_es2Down, njets,
-            		m_btautau_vis_es2Down, mtMET_1_nominal, mtMET_2_es2Down, pt_vis_es2Down);
-            runBDTeval(BDTval_UESUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-            		bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_UESUp, metphi_UESUp, D_zeta_UESUp, njets,
-            		m_btautau_vis_nominal, mtMET_1_nominal, mtMET_2_nominal, pt_vis_nominal);
-            runBDTeval(BDTval_UESDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-            		bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_UESDown, metphi_UESDown, D_zeta_UESDown, njets,
-            		m_btautau_vis_nominal, mtMET_1_nominal, mtMET_2_nominal, pt_vis_nominal);
-            runBDTeval(BDTval_ResponseUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-            		bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_responseUp, metphi_responseUp, D_zeta_responseUp, njets,
-            		m_btautau_vis_nominal, mtMET_1_responseUp, mtMET_2_responseUp, pt_vis_nominal);
-            runBDTeval(BDTval_ResponseDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-            		bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_responseDown, metphi_responseDown, D_zeta_responseDown, njets,
-            		m_btautau_vis_nominal, mtMET_1_responseDown, mtMET_2_responseDown, pt_vis_nominal);
-            runBDTeval(BDTval_ResolutionUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-            		bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_resolutionUp, metphi_resolutionUp, D_zeta_resolutionUp, njets,
-            		m_btautau_vis_nominal, mtMET_1_resolutionUp, mtMET_2_resolutionUp, pt_vis_nominal);
-            runBDTeval(BDTval_ResolutionDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-            		bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_resolutionDown, metphi_resolutionDown, D_zeta_resolutionDown, njets,
-            		m_btautau_vis_nominal, mtMET_1_resolutionDown, mtMET_2_resolutionDown, pt_vis_nominal);
-            runBDTeval(BDTval_JetAbsoluteUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetAbsoluteUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetAbsoluteUp_1,
-            		bpt_deepflavour_JetAbsoluteUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetAbsoluteUp_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetAbsoluteUp, metphi_JetAbsoluteUp, D_zeta_JetAbsoluteUp, njets,
-            		m_btautau_vis_JetAbsoluteUp_1, mtMET_1_JetAbsoluteUp, mtMET_2_JetAbsoluteUp, pt_vis_nominal);
-            runBDTeval(BDTval_JetAbsoluteDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetAbsoluteDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetAbsoluteDown_1,
-            		bpt_deepflavour_JetAbsoluteDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetAbsoluteDown_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetAbsoluteDown, metphi_JetAbsoluteDown, D_zeta_JetAbsoluteDown, njets,
-            		m_btautau_vis_JetAbsoluteDown_1, mtMET_1_JetAbsoluteDown, mtMET_2_JetAbsoluteDown, pt_vis_nominal);
-            runBDTeval(BDTval_JetAbsoluteyearUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetAbsoluteyearUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetAbsoluteyearUp_1,
-            		bpt_deepflavour_JetAbsoluteyearUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetAbsoluteyearUp_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetAbsoluteyearUp, metphi_JetAbsoluteyearUp, D_zeta_JetAbsoluteyearUp, njets,
-            		m_btautau_vis_JetAbsoluteyearUp_1, mtMET_1_JetAbsoluteyearUp, mtMET_2_JetAbsoluteyearUp, pt_vis_nominal);
-            runBDTeval(BDTval_JetAbsoluteyearDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetAbsoluteyearDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetAbsoluteyearDown_1,
-            		bpt_deepflavour_JetAbsoluteyearDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetAbsoluteyearDown_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetAbsoluteyearDown, metphi_JetAbsoluteyearDown, D_zeta_JetAbsoluteyearDown, njets,
-            		m_btautau_vis_JetAbsoluteyearDown_1, mtMET_1_JetAbsoluteyearDown, mtMET_2_JetAbsoluteyearDown, pt_vis_nominal);
-            runBDTeval(BDTval_JetBBEC1Up, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetBBEC1Up_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetBBEC1Up_1,
-            		bpt_deepflavour_JetBBEC1Up_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetBBEC1Up_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetBBEC1Up, metphi_JetBBEC1Up, D_zeta_JetBBEC1Up, njets,
-            		m_btautau_vis_JetBBEC1Up_1, mtMET_1_JetBBEC1Up, mtMET_2_JetBBEC1Up, pt_vis_nominal);
-            runBDTeval(BDTval_JetBBEC1Down, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetBBEC1Down_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetBBEC1Down_1,
-            		bpt_deepflavour_JetBBEC1Down_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetBBEC1Down_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetBBEC1Down, metphi_JetBBEC1Down, D_zeta_JetBBEC1Down, njets,
-            		m_btautau_vis_JetBBEC1Down_1, mtMET_1_JetBBEC1Down, mtMET_2_JetBBEC1Down, pt_vis_nominal);
-            runBDTeval(BDTval_JetBBEC1yearUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetBBEC1yearUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetBBEC1yearUp_1,
-            		bpt_deepflavour_JetBBEC1yearUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetBBEC1yearUp_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetBBEC1yearUp, metphi_JetBBEC1yearUp, D_zeta_JetBBEC1yearUp, njets,
-            		m_btautau_vis_JetBBEC1yearUp_1, mtMET_1_JetBBEC1yearUp, mtMET_2_JetBBEC1yearUp, pt_vis_nominal);
-            runBDTeval(BDTval_JetBBEC1yearDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetBBEC1yearDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetBBEC1yearDown_1,
-            		bpt_deepflavour_JetBBEC1yearDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetBBEC1yearDown_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetBBEC1yearDown, metphi_JetBBEC1yearDown, D_zeta_JetBBEC1yearDown, njets,
-            		m_btautau_vis_JetBBEC1yearDown_1, mtMET_1_JetBBEC1yearDown, mtMET_2_JetBBEC1yearDown, pt_vis_nominal);
-            runBDTeval(BDTval_JetEC2Up, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetEC2Up_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetEC2Up_1,
-            		bpt_deepflavour_JetEC2Up_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetEC2Up_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetEC2Up, metphi_JetEC2Up, D_zeta_JetEC2Up, njets,
-            		m_btautau_vis_JetEC2Up_1, mtMET_1_JetEC2Up, mtMET_2_JetEC2Up, pt_vis_nominal);
-            runBDTeval(BDTval_JetEC2Down, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetEC2Down_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetEC2Down_1,
-            		bpt_deepflavour_JetEC2Down_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetEC2Down_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetEC2Down, metphi_JetEC2Down, D_zeta_JetEC2Down, njets,
-            		m_btautau_vis_JetEC2Down_1, mtMET_1_JetEC2Down, mtMET_2_JetEC2Down, pt_vis_nominal);
-            runBDTeval(BDTval_JetEC2yearUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetEC2yearUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetEC2yearUp_1,
-            		bpt_deepflavour_JetEC2yearUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetEC2yearUp_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetEC2yearUp, metphi_JetEC2yearUp, D_zeta_JetEC2yearUp, njets,
-            		m_btautau_vis_JetEC2yearUp_1, mtMET_1_JetEC2yearUp, mtMET_2_JetEC2yearUp, pt_vis_nominal);
-            runBDTeval(BDTval_JetEC2yearDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetEC2yearDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetEC2yearDown_1,
-            		bpt_deepflavour_JetEC2yearDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetEC2yearDown_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetEC2yearDown, metphi_JetEC2yearDown, D_zeta_JetEC2yearDown, njets,
-            		m_btautau_vis_JetEC2yearDown_1, mtMET_1_JetEC2yearDown, mtMET_2_JetEC2yearDown, pt_vis_nominal);
-            runBDTeval(BDTval_JetFlavorQCDUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetFlavorQCDUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetFlavorQCDUp_1,
-            		bpt_deepflavour_JetFlavorQCDUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetFlavorQCDUp_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetFlavorQCDUp, metphi_JetFlavorQCDUp, D_zeta_JetFlavorQCDUp, njets,
-            		m_btautau_vis_JetFlavorQCDUp_1, mtMET_1_JetFlavorQCDUp, mtMET_2_JetFlavorQCDUp, pt_vis_nominal);
-            runBDTeval(BDTval_JetFlavorQCDDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetFlavorQCDDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetFlavorQCDDown_1,
-            		bpt_deepflavour_JetFlavorQCDDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetFlavorQCDDown_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetFlavorQCDDown, metphi_JetFlavorQCDDown, D_zeta_JetFlavorQCDDown, njets,
-            		m_btautau_vis_JetFlavorQCDDown_1, mtMET_1_JetFlavorQCDDown, mtMET_2_JetFlavorQCDDown, pt_vis_nominal);
-            runBDTeval(BDTval_JetHFUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetHFUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetHFUp_1,
-            		bpt_deepflavour_JetHFUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetHFUp_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetHFUp, metphi_JetHFUp, D_zeta_JetHFUp, njets,
-            		m_btautau_vis_JetHFUp_1, mtMET_1_JetHFUp, mtMET_2_JetHFUp, pt_vis_nominal);
-            runBDTeval(BDTval_JetHFDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetHFDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetHFDown_1,
-            		bpt_deepflavour_JetHFDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetHFDown_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetHFDown, metphi_JetHFDown, D_zeta_JetHFDown, njets,
-            		m_btautau_vis_JetHFDown_1, mtMET_1_JetHFDown, mtMET_2_JetHFDown, pt_vis_nominal);
-            runBDTeval(BDTval_JetHFyearUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetHFyearUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetHFyearUp_1,
-            		bpt_deepflavour_JetHFyearUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetHFyearUp_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetHFyearUp, metphi_JetHFyearUp, D_zeta_JetHFyearUp, njets,
-            		m_btautau_vis_JetHFyearUp_1, mtMET_1_JetHFyearUp, mtMET_2_JetHFyearUp, pt_vis_nominal);
-            runBDTeval(BDTval_JetHFyearDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetHFyearDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetHFyearDown_1,
-            		bpt_deepflavour_JetHFyearDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetHFyearDown_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetHFyearDown, metphi_JetHFyearDown, D_zeta_JetHFyearDown, njets,
-            		m_btautau_vis_JetHFyearDown_1, mtMET_1_JetHFyearDown, mtMET_2_JetHFyearDown, pt_vis_nominal);
-            runBDTeval(BDTval_JetRelativeBalUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetRelativeBalUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetRelativeBalUp_1,
-            		bpt_deepflavour_JetRelativeBalUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetRelativeBalUp_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetRelativeBalUp, metphi_JetRelativeBalUp, D_zeta_JetRelativeBalUp, njets,
-            		m_btautau_vis_JetRelativeBalUp_1, mtMET_1_JetRelativeBalUp, mtMET_2_JetRelativeBalUp, pt_vis_nominal);
-            runBDTeval(BDTval_JetRelativeBalDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetRelativeBalDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetRelativeBalDown_1,
-            		bpt_deepflavour_JetRelativeBalDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetRelativeBalDown_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetRelativeBalDown, metphi_JetRelativeBalDown, D_zeta_JetRelativeBalDown, njets,
-            		m_btautau_vis_JetRelativeBalDown_1, mtMET_1_JetRelativeBalDown, mtMET_2_JetRelativeBalDown, pt_vis_nominal);
-            runBDTeval(BDTval_JetRelativeSampleUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetRelativeSampleUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetRelativeSampleUp_1,
-            		bpt_deepflavour_JetRelativeSampleUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetRelativeSampleUp_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetRelativeSampleUp, metphi_JetRelativeSampleUp, D_zeta_JetRelativeSampleUp, njets,
-            		m_btautau_vis_JetRelativeSampleUp_1, mtMET_1_JetRelativeSampleUp, mtMET_2_JetRelativeSampleUp, pt_vis_nominal);
-            runBDTeval(BDTval_JetRelativeSampleDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JetRelativeSampleDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetRelativeSampleDown_1,
-            		bpt_deepflavour_JetRelativeSampleDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetRelativeSampleDown_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JetRelativeSampleDown, metphi_JetRelativeSampleDown, D_zeta_JetRelativeSampleDown, njets,
-            		m_btautau_vis_JetRelativeSampleDown_1, mtMET_1_JetRelativeSampleDown, mtMET_2_JetRelativeSampleDown, pt_vis_nominal);
-            runBDTeval(BDTval_JERUp, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JERUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JERUp_1,
-            		bpt_deepflavour_JERUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JERUp_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JERUp, metphi_JERUp, D_zeta_JERUp, njets,
-            		m_btautau_vis_JERUp_1, mtMET_1_JERUp, mtMET_2_JERUp, pt_vis_nominal);
-            runBDTeval(BDTval_JERDown, booster_idx, boosters[booster_idx],
-            		bpt_deepflavour_JERDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JERDown_1,
-            		bpt_deepflavour_JERDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JERDown_2,
-            		pt_1_nominal, eta_1, phi_1, m_1_nominal,
-            		pt_2_nominal, eta_2, phi_2, m_2_nominal,
-            		met_JERDown, metphi_JERDown, D_zeta_JERDown, njets,
-            		m_btautau_vis_JERDown_1, mtMET_1_JERDown, mtMET_2_JERDown, pt_vis_nominal);
+            runBDTeval(BDTval_es1Up, featureValues_es1Up, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                pt_1_es1Up, eta_1, phi_1, m_1_es1Up,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_es1Up, metphi_es1Up, D_zeta_es1Up, njets,
+                m_btautau_vis_es1Up, mtMET_1_es1Up, mtMET_2_nominal, pt_vis_es1Up);
+            runBDTeval(BDTval_es1Down, featureValues_es1Down, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                pt_1_es1Down, eta_1, phi_1, m_1_es1Down,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_es1Down, metphi_es1Down, D_zeta_es1Down, njets,
+                m_btautau_vis_es1Down, mtMET_1_es1Down, mtMET_2_nominal, pt_vis_es1Down);
+            runBDTeval(BDTval_es2Up, featureValues_es2Up, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_es2Up, eta_2, phi_2, m_2_es2Up,
+                met_es2Up, metphi_es2Up, D_zeta_es2Up, njets,
+                m_btautau_vis_es2Up, mtMET_1_nominal, mtMET_2_es2Up, pt_vis_es2Up);
+            runBDTeval(BDTval_es2Down, featureValues_es2Down, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_es2Down, eta_2, phi_2, m_2_es2Down,
+                met_es2Down, metphi_es2Down, D_zeta_es2Down, njets,
+                m_btautau_vis_es2Down, mtMET_1_nominal, mtMET_2_es2Down, pt_vis_es2Down);
+            runBDTeval(BDTval_UESUp, featureValues_UESUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_UESUp, metphi_UESUp, D_zeta_UESUp, njets,
+                m_btautau_vis_nominal, mtMET_1_nominal, mtMET_2_nominal, pt_vis_nominal);
+            runBDTeval(BDTval_UESDown, featureValues_UESDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_UESDown, metphi_UESDown, D_zeta_UESDown, njets,
+                m_btautau_vis_nominal, mtMET_1_nominal, mtMET_2_nominal, pt_vis_nominal);
+            runBDTeval(BDTval_ResponseUp, featureValues_ResponseUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_responseUp, metphi_responseUp, D_zeta_responseUp, njets,
+                m_btautau_vis_nominal, mtMET_1_responseUp, mtMET_2_responseUp, pt_vis_nominal);
+            runBDTeval(BDTval_ResponseDown, featureValues_ResponseDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_responseDown, metphi_responseDown, D_zeta_responseDown, njets,
+                m_btautau_vis_nominal, mtMET_1_responseDown, mtMET_2_responseDown, pt_vis_nominal);
+            runBDTeval(BDTval_ResolutionUp, featureValues_ResolutionUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_resolutionUp, metphi_resolutionUp, D_zeta_resolutionUp, njets,
+                m_btautau_vis_nominal, mtMET_1_resolutionUp, mtMET_2_resolutionUp, pt_vis_nominal);
+            runBDTeval(BDTval_ResolutionDown, featureValues_ResolutionDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_resolutionDown, metphi_resolutionDown, D_zeta_resolutionDown, njets,
+                m_btautau_vis_nominal, mtMET_1_resolutionDown, mtMET_2_resolutionDown, pt_vis_nominal);
+            runBDTeval(BDTval_JetAbsoluteUp, featureValues_JetAbsoluteUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetAbsoluteUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetAbsoluteUp_1,
+                bpt_deepflavour_JetAbsoluteUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetAbsoluteUp_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetAbsoluteUp, metphi_JetAbsoluteUp, D_zeta_JetAbsoluteUp, njets,
+                m_btautau_vis_JetAbsoluteUp_1, mtMET_1_JetAbsoluteUp, mtMET_2_JetAbsoluteUp, pt_vis_nominal);
+            runBDTeval(BDTval_JetAbsoluteDown, featureValues_JetAbsoluteDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetAbsoluteDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetAbsoluteDown_1,
+                bpt_deepflavour_JetAbsoluteDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetAbsoluteDown_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetAbsoluteDown, metphi_JetAbsoluteDown, D_zeta_JetAbsoluteDown, njets,
+                m_btautau_vis_JetAbsoluteDown_1, mtMET_1_JetAbsoluteDown, mtMET_2_JetAbsoluteDown, pt_vis_nominal);
+            runBDTeval(BDTval_JetAbsoluteyearUp, featureValues_JetAbsoluteyearUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetAbsoluteyearUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetAbsoluteyearUp_1,
+                bpt_deepflavour_JetAbsoluteyearUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetAbsoluteyearUp_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetAbsoluteyearUp, metphi_JetAbsoluteyearUp, D_zeta_JetAbsoluteyearUp, njets,
+                m_btautau_vis_JetAbsoluteyearUp_1, mtMET_1_JetAbsoluteyearUp, mtMET_2_JetAbsoluteyearUp, pt_vis_nominal);
+            runBDTeval(BDTval_JetAbsoluteyearDown, featureValues_JetAbsoluteyearDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetAbsoluteyearDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetAbsoluteyearDown_1,
+                bpt_deepflavour_JetAbsoluteyearDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetAbsoluteyearDown_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetAbsoluteyearDown, metphi_JetAbsoluteyearDown, D_zeta_JetAbsoluteyearDown, njets,
+                m_btautau_vis_JetAbsoluteyearDown_1, mtMET_1_JetAbsoluteyearDown, mtMET_2_JetAbsoluteyearDown, pt_vis_nominal);
+            runBDTeval(BDTval_JetBBEC1Up, featureValues_JetBBEC1Up, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetBBEC1Up_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetBBEC1Up_1,
+                bpt_deepflavour_JetBBEC1Up_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetBBEC1Up_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetBBEC1Up, metphi_JetBBEC1Up, D_zeta_JetBBEC1Up, njets,
+                m_btautau_vis_JetBBEC1Up_1, mtMET_1_JetBBEC1Up, mtMET_2_JetBBEC1Up, pt_vis_nominal);
+            runBDTeval(BDTval_JetBBEC1Down, featureValues_JetBBEC1Down, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetBBEC1Down_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetBBEC1Down_1,
+                bpt_deepflavour_JetBBEC1Down_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetBBEC1Down_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetBBEC1Down, metphi_JetBBEC1Down, D_zeta_JetBBEC1Down, njets,
+                m_btautau_vis_JetBBEC1Down_1, mtMET_1_JetBBEC1Down, mtMET_2_JetBBEC1Down, pt_vis_nominal);
+            runBDTeval(BDTval_JetBBEC1yearUp, featureValues_JetBBEC1yearUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetBBEC1yearUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetBBEC1yearUp_1,
+                bpt_deepflavour_JetBBEC1yearUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetBBEC1yearUp_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetBBEC1yearUp, metphi_JetBBEC1yearUp, D_zeta_JetBBEC1yearUp, njets,
+                m_btautau_vis_JetBBEC1yearUp_1, mtMET_1_JetBBEC1yearUp, mtMET_2_JetBBEC1yearUp, pt_vis_nominal);
+            runBDTeval(BDTval_JetBBEC1yearDown, featureValues_JetBBEC1yearDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetBBEC1yearDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetBBEC1yearDown_1,
+                bpt_deepflavour_JetBBEC1yearDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetBBEC1yearDown_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetBBEC1yearDown, metphi_JetBBEC1yearDown, D_zeta_JetBBEC1yearDown, njets,
+                m_btautau_vis_JetBBEC1yearDown_1, mtMET_1_JetBBEC1yearDown, mtMET_2_JetBBEC1yearDown, pt_vis_nominal);
+            runBDTeval(BDTval_JetEC2Up, featureValues_JetEC2Up, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetEC2Up_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetEC2Up_1,
+                bpt_deepflavour_JetEC2Up_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetEC2Up_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetEC2Up, metphi_JetEC2Up, D_zeta_JetEC2Up, njets,
+                m_btautau_vis_JetEC2Up_1, mtMET_1_JetEC2Up, mtMET_2_JetEC2Up, pt_vis_nominal);
+            runBDTeval(BDTval_JetEC2Down, featureValues_JetEC2Down, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetEC2Down_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetEC2Down_1,
+                bpt_deepflavour_JetEC2Down_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetEC2Down_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetEC2Down, metphi_JetEC2Down, D_zeta_JetEC2Down, njets,
+                m_btautau_vis_JetEC2Down_1, mtMET_1_JetEC2Down, mtMET_2_JetEC2Down, pt_vis_nominal);
+            runBDTeval(BDTval_JetEC2yearUp, featureValues_JetEC2yearUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetEC2yearUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetEC2yearUp_1,
+                bpt_deepflavour_JetEC2yearUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetEC2yearUp_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetEC2yearUp, metphi_JetEC2yearUp, D_zeta_JetEC2yearUp, njets,
+                m_btautau_vis_JetEC2yearUp_1, mtMET_1_JetEC2yearUp, mtMET_2_JetEC2yearUp, pt_vis_nominal);
+            runBDTeval(BDTval_JetEC2yearDown, featureValues_JetEC2yearDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetEC2yearDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetEC2yearDown_1,
+                bpt_deepflavour_JetEC2yearDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetEC2yearDown_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetEC2yearDown, metphi_JetEC2yearDown, D_zeta_JetEC2yearDown, njets,
+                m_btautau_vis_JetEC2yearDown_1, mtMET_1_JetEC2yearDown, mtMET_2_JetEC2yearDown, pt_vis_nominal);
+            runBDTeval(BDTval_JetFlavorQCDUp, featureValues_JetFlavorQCDUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetFlavorQCDUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetFlavorQCDUp_1,
+                bpt_deepflavour_JetFlavorQCDUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetFlavorQCDUp_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetFlavorQCDUp, metphi_JetFlavorQCDUp, D_zeta_JetFlavorQCDUp, njets,
+                m_btautau_vis_JetFlavorQCDUp_1, mtMET_1_JetFlavorQCDUp, mtMET_2_JetFlavorQCDUp, pt_vis_nominal);
+            runBDTeval(BDTval_JetFlavorQCDDown, featureValues_JetFlavorQCDDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetFlavorQCDDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetFlavorQCDDown_1,
+                bpt_deepflavour_JetFlavorQCDDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetFlavorQCDDown_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetFlavorQCDDown, metphi_JetFlavorQCDDown, D_zeta_JetFlavorQCDDown, njets,
+                m_btautau_vis_JetFlavorQCDDown_1, mtMET_1_JetFlavorQCDDown, mtMET_2_JetFlavorQCDDown, pt_vis_nominal);
+            runBDTeval(BDTval_JetHFUp, featureValues_JetHFUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetHFUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetHFUp_1,
+                bpt_deepflavour_JetHFUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetHFUp_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetHFUp, metphi_JetHFUp, D_zeta_JetHFUp, njets,
+                m_btautau_vis_JetHFUp_1, mtMET_1_JetHFUp, mtMET_2_JetHFUp, pt_vis_nominal);
+            runBDTeval(BDTval_JetHFDown, featureValues_JetHFDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetHFDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetHFDown_1,
+                bpt_deepflavour_JetHFDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetHFDown_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetHFDown, metphi_JetHFDown, D_zeta_JetHFDown, njets,
+                m_btautau_vis_JetHFDown_1, mtMET_1_JetHFDown, mtMET_2_JetHFDown, pt_vis_nominal);
+            runBDTeval(BDTval_JetHFyearUp, featureValues_JetHFyearUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetHFyearUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetHFyearUp_1,
+                bpt_deepflavour_JetHFyearUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetHFyearUp_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetHFyearUp, metphi_JetHFyearUp, D_zeta_JetHFyearUp, njets,
+                m_btautau_vis_JetHFyearUp_1, mtMET_1_JetHFyearUp, mtMET_2_JetHFyearUp, pt_vis_nominal);
+            runBDTeval(BDTval_JetHFyearDown, featureValues_JetHFyearDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetHFyearDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetHFyearDown_1,
+                bpt_deepflavour_JetHFyearDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetHFyearDown_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetHFyearDown, metphi_JetHFyearDown, D_zeta_JetHFyearDown, njets,
+                m_btautau_vis_JetHFyearDown_1, mtMET_1_JetHFyearDown, mtMET_2_JetHFyearDown, pt_vis_nominal);
+            runBDTeval(BDTval_JetRelativeBalUp, featureValues_JetRelativeBalUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetRelativeBalUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetRelativeBalUp_1,
+                bpt_deepflavour_JetRelativeBalUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetRelativeBalUp_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetRelativeBalUp, metphi_JetRelativeBalUp, D_zeta_JetRelativeBalUp, njets,
+                m_btautau_vis_JetRelativeBalUp_1, mtMET_1_JetRelativeBalUp, mtMET_2_JetRelativeBalUp, pt_vis_nominal);
+            runBDTeval(BDTval_JetRelativeBalDown, featureValues_JetRelativeBalDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetRelativeBalDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetRelativeBalDown_1,
+                bpt_deepflavour_JetRelativeBalDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetRelativeBalDown_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetRelativeBalDown, metphi_JetRelativeBalDown, D_zeta_JetRelativeBalDown, njets,
+                m_btautau_vis_JetRelativeBalDown_1, mtMET_1_JetRelativeBalDown, mtMET_2_JetRelativeBalDown, pt_vis_nominal);
+            runBDTeval(BDTval_JetRelativeSampleUp, featureValues_JetRelativeSampleUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetRelativeSampleUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetRelativeSampleUp_1,
+                bpt_deepflavour_JetRelativeSampleUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetRelativeSampleUp_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetRelativeSampleUp, metphi_JetRelativeSampleUp, D_zeta_JetRelativeSampleUp, njets,
+                m_btautau_vis_JetRelativeSampleUp_1, mtMET_1_JetRelativeSampleUp, mtMET_2_JetRelativeSampleUp, pt_vis_nominal);
+            runBDTeval(BDTval_JetRelativeSampleDown, featureValues_JetRelativeSampleDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JetRelativeSampleDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JetRelativeSampleDown_1,
+                bpt_deepflavour_JetRelativeSampleDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JetRelativeSampleDown_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JetRelativeSampleDown, metphi_JetRelativeSampleDown, D_zeta_JetRelativeSampleDown, njets,
+                m_btautau_vis_JetRelativeSampleDown_1, mtMET_1_JetRelativeSampleDown, mtMET_2_JetRelativeSampleDown, pt_vis_nominal);
+            runBDTeval(BDTval_JERUp, featureValues_JERUp, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JERUp_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JERUp_1,
+                bpt_deepflavour_JERUp_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JERUp_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JERUp, metphi_JERUp, D_zeta_JERUp, njets,
+                m_btautau_vis_JERUp_1, mtMET_1_JERUp, mtMET_2_JERUp, pt_vis_nominal);
+            runBDTeval(BDTval_JERDown, featureValues_JERDown, booster_idx, boosters[booster_idx],
+                bpt_deepflavour_JERDown_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_JERDown_1,
+                bpt_deepflavour_JERDown_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_JERDown_2,
+                pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                met_JERDown, metphi_JERDown, D_zeta_JERDown, njets,
+                m_btautau_vis_JERDown_1, mtMET_1_JERDown, mtMET_2_JERDown, pt_vis_nominal);    
 	  }
 	  if (isEmbedded) {
-            runBDTeval(BDTval_nominal, booster_idx, boosters[booster_idx],
-                        bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-                        bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-                        pt_1_nominal, eta_1, phi_1, m_1_nominal,
-                        pt_2_nominal, eta_2, phi_2, m_2_nominal,
-                        met_nominal, metphi_nominal, D_zeta_nominal, njets,
-                        m_btautau_vis_nominal, mtMET_1_nominal, mtMET_2_nominal, pt_vis_nominal);
+            runBDTeval(BDTval_nominal, featureValues_nominal, booster_idx, boosters[booster_idx],
+                  bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                  bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                  pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                  pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                  met_nominal, metphi_nominal, D_zeta_nominal, njets,
+                  m_btautau_vis_nominal, mtMET_1_nominal, mtMET_2_nominal, pt_vis_nominal);
             std::cout<<bpt_deepflavour_1<<"\t"<<bpt_deepflavour_2<<"\t"<<booster_idx<<"\t"<<BDTval_nominal<<std::endl;
-            runBDTeval(BDTval_es1Up, booster_idx, boosters[booster_idx],
-                        bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-                        bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-                        pt_1_es1Up, eta_1, phi_1, m_1_es1Up,
-                        pt_2_nominal, eta_2, phi_2, m_2_nominal,
-                        met_es1Up, metphi_es1Up, D_zeta_es1Up, njets,
-                        m_btautau_vis_es1Up, mtMET_1_es1Up, mtMET_2_nominal, pt_vis_es1Up);
-            runBDTeval(BDTval_es1Down, booster_idx, boosters[booster_idx],
-                        bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-                        bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-                        pt_1_es1Down, eta_1, phi_1, m_1_es1Down,
-                        pt_2_nominal, eta_2, phi_2, m_2_nominal,
-                        met_es1Down, metphi_es1Down, D_zeta_es1Down, njets,
-                        m_btautau_vis_es1Down, mtMET_1_es1Down, mtMET_2_nominal, pt_vis_es1Down);
-            runBDTeval(BDTval_es2Up, booster_idx, boosters[booster_idx],
-                        bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-                        bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-                        pt_1_nominal, eta_1, phi_1, m_1_nominal,
-                        pt_2_es2Up, eta_2, phi_2, m_2_es2Up,
-                        met_es2Up, metphi_es2Up, D_zeta_es2Up, njets,
-                        m_btautau_vis_es2Up, mtMET_1_nominal, mtMET_2_es2Up, pt_vis_es2Up);
-            runBDTeval(BDTval_es2Down, booster_idx, boosters[booster_idx],
-                        bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
-                        bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
-                        pt_1_nominal, eta_1, phi_1, m_1_nominal,
-                        pt_2_es2Down, eta_2, phi_2, m_2_es2Down,
-                        met_es2Down, metphi_es2Down, D_zeta_es2Down, njets,
-                        m_btautau_vis_es2Down, mtMET_1_nominal, mtMET_2_es2Down, pt_vis_es2Down);
+            runBDTeval(BDTval_es1Up, featureValues_es1Up, booster_idx, boosters[booster_idx],
+                  bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                  bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                  pt_1_es1Up, eta_1, phi_1, m_1_es1Up,
+                  pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                  met_es1Up, metphi_es1Up, D_zeta_es1Up, njets,
+                  m_btautau_vis_es1Up, mtMET_1_es1Up, mtMET_2_nominal, pt_vis_es1Up);
+            runBDTeval(BDTval_es1Down, featureValues_es1Down, booster_idx, boosters[booster_idx],
+                  bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                  bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                  pt_1_es1Down, eta_1, phi_1, m_1_es1Down,
+                  pt_2_nominal, eta_2, phi_2, m_2_nominal,
+                  met_es1Down, metphi_es1Down, D_zeta_es1Down, njets,
+                  m_btautau_vis_es1Down, mtMET_1_es1Down, mtMET_2_nominal, pt_vis_es1Down);
+            runBDTeval(BDTval_es2Up, featureValues_es2Up, booster_idx, boosters[booster_idx],
+                  bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                  bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                  pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                  pt_2_es2Up, eta_2, phi_2, m_2_es2Up,
+                  met_es2Up, metphi_es2Up, D_zeta_es2Up, njets,
+                  m_btautau_vis_es2Up, mtMET_1_nominal, mtMET_2_es2Up, pt_vis_es2Up);
+            runBDTeval(BDTval_es2Down, featureValues_es2Down, booster_idx, boosters[booster_idx],
+                  bpt_deepflavour_1, beta_deepflavour_1, bphi_deepflavour_1, bm_deepflavour_1,
+                  bpt_deepflavour_2, beta_deepflavour_2, bphi_deepflavour_2, bm_deepflavour_2,
+                  pt_1_nominal, eta_1, phi_1, m_1_nominal,
+                  pt_2_es2Down, eta_2, phi_2, m_2_es2Down,
+                  met_es2Down, metphi_es2Down, D_zeta_es2Down, njets,
+                  m_btautau_vis_es2Down, mtMET_1_nominal, mtMET_2_es2Down, pt_vis_es2Down);              
 	  }
         } 
 
@@ -1257,6 +1422,43 @@ void readdir(TDirectory *dir, optutl::CommandLineParser parser, char TreeToUse[]
         newBranch1_JetRelativeSampleD->Fill();
         newBranch1_JERU->Fill();
         newBranch1_JERD->Fill();
+
+        newBranch1_featureNames->Fill();
+        newBranch1_featureValues->Fill();
+        newBranch1_featureValues_es1U->Fill();
+        newBranch1_featureValues_es1D->Fill();
+        newBranch1_featureValues_es2U->Fill();
+        newBranch1_featureValues_es2D->Fill();
+        newBranch1_featureValues_UESU->Fill();
+        newBranch1_featureValues_UESD->Fill();
+        newBranch1_featureValues_ResponseU->Fill();
+        newBranch1_featureValues_ResponseD->Fill();
+        newBranch1_featureValues_ResolutionU->Fill();
+        newBranch1_featureValues_ResolutionD->Fill();
+        newBranch1_featureValues_JetAbsoluteU->Fill();
+        newBranch1_featureValues_JetAbsoluteD->Fill();
+        newBranch1_featureValues_JetAbsoluteyearU->Fill();
+        newBranch1_featureValues_JetAbsoluteyearD->Fill();
+        newBranch1_featureValues_JetBBEC1U->Fill();
+        newBranch1_featureValues_JetBBEC1D->Fill();
+        newBranch1_featureValues_JetBBEC1yearU->Fill();
+        newBranch1_featureValues_JetBBEC1yearD->Fill();
+        newBranch1_featureValues_JetEC2U->Fill();
+        newBranch1_featureValues_JetEC2D->Fill();
+        newBranch1_featureValues_JetEC2yearU->Fill();
+        newBranch1_featureValues_JetEC2yearD->Fill();
+        newBranch1_featureValues_JetFlavorQCDU->Fill();
+        newBranch1_featureValues_JetFlavorQCDD->Fill();
+        newBranch1_featureValues_JetHFU->Fill();
+        newBranch1_featureValues_JetHFD->Fill();
+        newBranch1_featureValues_JetHFyearU->Fill();
+        newBranch1_featureValues_JetHFyearD->Fill();
+        newBranch1_featureValues_JetRelativeBalU->Fill();
+        newBranch1_featureValues_JetRelativeBalD->Fill();
+        newBranch1_featureValues_JetRelativeSampleU->Fill();
+        newBranch1_featureValues_JetRelativeSampleD->Fill();
+        newBranch1_featureValues_JERU->Fill();
+        newBranch1_featureValues_JERD->Fill();
       }
       dir->cd();
       t->Write("",TObject::kOverwrite);
@@ -1268,7 +1470,7 @@ void readdir(TDirectory *dir, optutl::CommandLineParser parser, char TreeToUse[]
   }
 }
 
-void runBDTeval(float& BDTval, int booster_idx, pat::XGBooster booster, float jet_1_pt, float jet_1_eta, float jet_1_phi, float jet_1_mass, float jet_2_pt, float jet_2_eta, float jet_2_phi, float jet_2_mass, float pt_1, float eta_1, float phi_1, float mass_1, float pt_2, float eta_2, float phi_2, float mass_2, float met, float met_phi, float d_zeta, int njets, float m_btautau_vis, float mtMET_1, float mtMET_2, float pt_vis) {
+void runBDTeval(float& BDTval, std::vector<float>* featureValues, int booster_idx, pat::XGBooster booster, float jet_1_pt, float jet_1_eta, float jet_1_phi, float jet_1_mass, float jet_2_pt, float jet_2_eta, float jet_2_phi, float jet_2_mass, float pt_1, float eta_1, float phi_1, float mass_1, float pt_2, float eta_2, float phi_2, float mass_2, float met, float met_phi, float d_zeta, int njets, float m_btautau_vis, float mtMET_1, float mtMET_2, float pt_vis) {
   ROOT::Math::PtEtaPhiMVector bjet1(jet_1_pt, jet_1_eta, jet_1_phi, jet_1_mass);
   ROOT::Math::PtEtaPhiMVector bjet2(jet_2_pt, jet_2_eta, jet_2_phi, jet_2_mass);
   ROOT::Math::PtEtaPhiMVector bjet12 = bjet1 + bjet2;
@@ -1287,6 +1489,7 @@ void runBDTeval(float& BDTval, int booster_idx, pat::XGBooster booster, float je
     in_bmt_dR = compute_deltaR(jet_1_eta, tau12.Eta(), jet_1_phi, tau12.Phi());
     in_b1th_dR = compute_deltaR(jet_1_eta, eta_2, jet_1_phi, phi_2);
     in_njets = njets;
+
     booster.set("mT_thMET", in_mT_thMET);
     booster.set("mT_mMET", in_mT_mMET);
     booster.set("d_zeta", in_d_zeta);
@@ -1296,6 +1499,15 @@ void runBDTeval(float& BDTval, int booster_idx, pat::XGBooster booster, float je
     booster.set("b1th_dR", in_b1th_dR);
     booster.set("njets", in_njets);
     BDTval = booster.predict();
+
+    featureValues->push_back( in_mT_thMET);
+    featureValues->push_back( in_mT_mMET);
+    featureValues->push_back( in_d_zeta);
+    featureValues->push_back( in_mutau_pt);
+    featureValues->push_back( in_m_b1mt);
+    featureValues->push_back( in_bmt_dR);
+    featureValues->push_back( in_b1th_dR);
+    featureValues->push_back( in_njets);
   } 
   else if (booster_idx == 1) {
     float in_pt_vis, in_d_zeta, in_b1e_dR, in_m_btautau_vis, in_mtMET_1, in_b1th_dR, in_mtMET_2, in_njets;
@@ -1317,6 +1529,15 @@ void runBDTeval(float& BDTval, int booster_idx, pat::XGBooster booster, float je
     booster.set("mtMET_2_nominal", in_mtMET_2);
     booster.set("njets", in_njets);
     BDTval = booster.predict();
+
+    featureValues->push_back( in_pt_vis);
+    featureValues->push_back( in_d_zeta);
+    featureValues->push_back( in_b1e_dR);
+    featureValues->push_back( in_m_btautau_vis);
+    featureValues->push_back( in_mtMET_1);
+    featureValues->push_back( in_b1th_dR);
+    featureValues->push_back( in_mtMET_2);
+    featureValues->push_back( in_njets);
   } 
   else if (booster_idx == 2) {
     float in_pt_vis, in_d_zeta, in_mT_b1MET, in_pt_1, in_m_btautau_vis, in_mtMET_1, in_b1emu_dR, in_njets;
@@ -1338,6 +1559,15 @@ void runBDTeval(float& BDTval, int booster_idx, pat::XGBooster booster, float je
     booster.set("b1emu_dR", in_b1emu_dR);
     booster.set("njets", in_njets);
     BDTval = booster.predict();
+
+    featureValues->push_back( in_pt_vis);
+    featureValues->push_back( in_d_zeta);
+    featureValues->push_back( in_mT_b1MET);
+    featureValues->push_back( in_pt_1);
+    featureValues->push_back( in_m_btautau_vis);
+    featureValues->push_back( in_mtMET_1);
+    featureValues->push_back( in_b1emu_dR);
+    featureValues->push_back( in_njets);
   } 
   else if (booster_idx == 3) {
     float in_m_b2mt, in_bmt_dR, in_b2th_dR, in_mT_mMET, in_m_bbmt, in_d_ma;
@@ -1355,6 +1585,13 @@ void runBDTeval(float& BDTval, int booster_idx, pat::XGBooster booster, float je
     booster.set("m_bbmt", in_m_bbmt);
     booster.set("d_ma", in_d_ma);
     BDTval = booster.predict();
+
+    featureValues->push_back( in_m_b2mt);
+    featureValues->push_back( in_bmt_dR);
+    featureValues->push_back( in_b2th_dR);
+    featureValues->push_back( in_mT_mMET);
+    featureValues->push_back( in_m_bbmt);
+    featureValues->push_back( in_d_ma);
   } 
   else if (booster_idx == 4) {
     float in_mbb, in_m_btautau_vis, in_mtMET_1, in_b1th_dR, in_b1e_dR, in_b2th_dR;
@@ -1372,6 +1609,13 @@ void runBDTeval(float& BDTval, int booster_idx, pat::XGBooster booster, float je
     booster.set("b1e_dR", in_b1e_dR);
     booster.set("b2th_dR", in_b2th_dR);
     BDTval = booster.predict();
+
+    featureValues->push_back( in_mbb);
+    featureValues->push_back( in_m_btautau_vis);
+    featureValues->push_back( in_mtMET_1);
+    featureValues->push_back( in_b1th_dR);
+    featureValues->push_back( in_b1e_dR);
+    featureValues->push_back( in_b2th_dR);
   }
   else if (booster_idx == 5) {
     float in_pt_vis, in_mT_b1MET, in_mtMET_1, in_b2emu_dR, in_d_ma;
@@ -1387,6 +1631,12 @@ void runBDTeval(float& BDTval, int booster_idx, pat::XGBooster booster, float je
     booster.set("b2emu_dR", in_b2emu_dR);
     booster.set("d_ma", in_d_ma);
     BDTval = booster.predict();
+
+    featureValues->push_back( in_pt_vis);
+    featureValues->push_back( in_mT_b1MET);
+    featureValues->push_back( in_mtMET_1);
+    featureValues->push_back( in_b2emu_dR);
+    featureValues->push_back( in_d_ma);
   } 
   else BDTval = -10.;
 }
