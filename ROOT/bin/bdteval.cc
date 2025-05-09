@@ -126,7 +126,6 @@ int main (int argc, char** argv) {
   std::string newFileName = parser.stringValue("newFile");
   bool isMC = parser.boolValue("isMC");
   bool isEmbedded = parser.boolValue("isEmbedded");
-  std::cout << "isMC : " << isMC << std::endl;
 
   fProduce = new TFile(newFileName.c_str(),"RECREATE");
   copyFiles(parser, f, fProduce);
