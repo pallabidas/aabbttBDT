@@ -1,0 +1,32 @@
+# Executable should be <path_to>/job.sh.
+# Everything in ( ) parentheses needs to be replaced with sed in runCondorHistogramming.sh
+# Variables in $( ) are environmental variables. $(Process) is set by Condor and automatically loops over queue = 0, ..., N if we write "queue N" at the end
+
+executable      = /afs/cern.ch/work/p/pdas/haa/bdt/CMSSW_14_1_0_pre5/src/aabbttBDT/ROOT/bin/condor/job.sh
++job_name       = "(sample) bdt"
+
+getenv          = True
+proxy_filename  = /afs/cern.ch/user/p/pdas/private/x509up_file
+
++JobFlavour     = (job_flavour)
+
+# We are unlikely to need to request more CPUs, comment this out
+# RequestCpus     = 4
+
+requirements = (OpSysAndVer =?= "AlmaLinux9")
+
+# Tip: $(ClusterId) $(ProcId) will give unique output files, but we will just use time-stamped directories for better legibility
+
+arguments	= $(proxy_filename) (input_file) (output_file) (isMC) (isEmbedded)
+output = logs/(timestamp)/(sample)/test_(sample)_$(Process).out
+error = logs/(timestamp)/(sample)/test_(sample)_$(Process).err
+log = logs/(timestamp)/(sample)/test_(sample)_$(Process).log
+
+should_transfer_files = YES
+
+transfer_input_files = (absolute_path_to_executable)
+
+output_destination = (eos_dir)
+MY.XRDCP_CREATE_DIR = True
+
+queue (n_jobs)
