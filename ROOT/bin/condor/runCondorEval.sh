@@ -6,9 +6,11 @@
 #
 #--------------------------------------------------------
 # path to .csv with list of samples to run on, formatted as: top-level directory to n-tuple (typically in EOS), sample name, config path, cross-section, and # of events in DAS
-SAMPLES="hists-2018-benchmark.csv"
+SAMPLES="hists-2017-benchmark.csv"
 # optional description that only affects the job name in Condor
-DESCRIPTION="May_skim-BDT-2018"
+DESCRIPTION="May_skim-BDT-2017"
+# skimpath: only used to find the number of jobs per sample, in postprocesssing some files might be missing (because of no trees) but we want the total number of files for the job indices: use the SVfit folder which has all files
+SKIMPATH="/eos/cms/store/group/phys_susy/AN-24-166/pdas/HAA_svfit/2025-05-26-23h34m_2017/"
 # submit: true (create .sub submit file and output directories, and submit with condor_submit) or false (only create .sub file and output directories, but do not submit)
 SUBMIT=true
 
@@ -129,7 +131,6 @@ do
     INPUT_FILENAME="${EOS_PREFIX}${INPUTDIR}/${SAMPLE}/${SAMPLE_FILE_NAME}"
     OUTPUT_FILENAME="postprocessed_ntuple_${SAMPLE}_\$(Process).root"
     SUBLIST_NAME="paths/${YEAR}/inputs_${SAMPLE}.list"
-    SKIMPATH="/eos/cms/store/group/phys_susy/AN-24-166/pdas/HAA_svfit/2025-05-14-00h15m_2018/"
     NJOBS=$(find ${SKIMPATH}${SAMPLE}/*.root | wc -l)
     echo "   >>> njobs: ${NJOBS}"
 
